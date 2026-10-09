@@ -7,7 +7,7 @@ import OverviewPage from '@/pages/OverviewPage';
 import ReportsPage from '@/pages/ReportsPage';
 import SettingsPage from '@/pages/SettingsPage';
 import VehiclesPage from '@/pages/VehiclesPage';
-import { AppProvider, useApp } from '@/store/AppContext';
+import { Providers, useApp } from '@/store';
 
 function PageRouter() {
   const { currentPage } = useApp();
@@ -36,10 +36,10 @@ function PageRouter() {
 
 export default function App() {
   return (
-    <AppProvider>
+    <Providers>
       <Layout>
         <PageRouter />
       </Layout>
-    </AppProvider>
+    </Providers>
   );
 }
