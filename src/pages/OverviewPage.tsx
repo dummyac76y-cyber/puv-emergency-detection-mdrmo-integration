@@ -8,6 +8,7 @@ import {
   Activity,
   ArrowRight,
 } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
 
 import {
   SimulationBanner,
@@ -17,67 +18,99 @@ import {
   IncidentTypeIcon,
 } from '@/components/shared';
 import LiveMap from '@/pages/LiveMapPage';
+import { analyticsApi } from '@/services/api/analyticsApi';
+import { useIncidents, useVehicles } from '@/store';
 import { useApp } from '@/store/AppContext';
+import { SystemStats } from '@/types';
 
 export default function OverviewPage() {
-  const { stats, incidents, vehicles, setCurrentPage, setSelectedIncident } = useApp();
-  const activeEmergencies = incidents.filter(
-    (i) => i.status === 'new' || i.status === 'acknowledged' || i.status === 'responding'
-  );
-  const recentIncidents = [...incidents]
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 5);
+  const { incidents, setSelectedIncident } = useIncidents();
+  const { vehicles } = useVehicles();
+  const { setCurrentPage } = useApp();
+  const [stats, setStats] = useState<SystemStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
-  const statCards = [
-    {
-      label: 'Active Emergencies',
-      value: stats.activeEmergencies,
-      icon: AlertTriangle,
-      color: 'text-red-400',
-      bg: 'bg-red-900/20',
-      border: 'border-red-800/30',
-    },
-    {
-      label: 'Unacknowledged Alerts',
-      value: stats.unacknowledgedAlerts,
-      icon: Radio,
-      color: 'text-amber-400',
-      bg: 'bg-amber-900/20',
-      border: 'border-amber-800/30',
-    },
-    {
-      label: 'Vehicles Monitored',
-      value: stats.vehiclesMonitored,
-      icon: Bus,
-      color: 'text-blue-400',
-      bg: 'bg-blue-900/20',
-      border: 'border-blue-800/30',
-    },
-    {
-      label: 'Resolved Today',
-      value: stats.incidentsResolvedToday,
-      icon: CheckCircle,
-      color: 'text-green-400',
-      bg: 'bg-green-900/20',
-      border: 'border-green-800/30',
-    },
-    {
-      label: 'Avg Alert Delivery',
-      value: `${stats.avgAlertDeliveryMs}ms`,
-      icon: Zap,
-      color: 'text-purple-400',
-      bg: 'bg-purple-900/20',
-      border: 'border-purple-800/30',
-    },
-    {
-      label: 'Devices Offline',
-      value: stats.devicesOffline,
-      icon: Cpu,
-      color: 'text-gray-400',
-      bg: 'bg-gray-800/20',
-      border: 'border-gray-700/30',
-    },
-  ];
+  const activeEmergencies = useMemo(() => {
+    return incidents.filter(
+      (i) => i.status === 'new' || i.status === 'acknowledged' || i.status === 'responding'
+    );
+  }, [incidents]);
+
+  const recentIncidents = useMemo(() => {
+    return [...incidents]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 5);
+  }, [incidents]);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        setStatsLoading(true);
+        const data = await analyticsApi.getSystemStats();
+        setStats(data);
+      } catch (error) {
+        setStatsError(error instanceof Error ? error.message : 'Failed to load stats');
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    loadStats();
+  }, []);
+
+  const statCards = useMemo(
+    () => [
+      {
+        label: 'Active Emergencies',
+        value: stats?.activeEmergencies ?? 0,
+        icon: AlertTriangle,
+        color: 'text-red-400',
+        bg: 'bg-red-900/20',
+        border: 'border-red-800/30',
+      },
+      {
+        label: 'Unacknowledged Alerts',
+        value: stats?.unacknowledgedAlerts ?? 0,
+        icon: Radio,
+        color: 'text-amber-400',
+        bg: 'bg-amber-900/20',
+        border: 'border-amber-800/30',
+      },
+      {
+        label: 'Vehicles Monitored',
+        value: stats?.vehiclesMonitored ?? 0,
+        icon: Bus,
+        color: 'text-blue-400',
+        bg: 'bg-blue-900/20',
+        border: 'border-blue-800/30',
+      },
+      {
+        label: 'Resolved Today',
+        value: stats?.incidentsResolvedToday ?? 0,
+        icon: CheckCircle,
+        color: 'text-green-400',
+        bg: 'bg-green-900/20',
+        border: 'border-green-800/30',
+      },
+      {
+        label: 'Avg Alert Delivery',
+        value: `${stats?.avgAlertDeliveryMs ?? 0}ms`,
+        icon: Zap,
+        color: 'text-purple-400',
+        bg: 'bg-purple-900/20',
+        border: 'border-purple-800/30',
+      },
+      {
+        label: 'Devices Offline',
+        value: stats?.devicesOffline ?? 0,
+        icon: Cpu,
+        color: 'text-gray-400',
+        bg: 'bg-gray-800/20',
+        border: 'border-gray-700/30',
+      },
+    ],
+    [stats]
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -95,6 +128,12 @@ export default function OverviewPage() {
             </div>
           ))}
         </div>
+
+        {statsError && (
+          <div className="p-3 bg-red-900/30 border border-red-800/30 text-red-400 text-xs rounded-lg">
+            Error loading stats: {statsError}
+          </div>
+        )}
 
         {/* Map + Emergency Queue */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -118,7 +157,11 @@ export default function OverviewPage() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-2 space-y-2">
-              {activeEmergencies.length === 0 ? (
+              {statsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent" />
+                </div>
+              ) : activeEmergencies.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <CheckCircle className="w-8 h-8 text-green-500 mb-2" />
                   <p className="text-sm text-text-secondary">No active emergencies</p>

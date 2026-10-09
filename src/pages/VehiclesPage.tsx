@@ -1,31 +1,33 @@
 import { Search, Bus, Plus, User, Cpu, Fuel, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 import { SimulationBanner, VehicleStatusDot } from '@/components/shared';
-import { useApp } from '@/store/AppContext';
+import { useVehicles } from '@/store';
 import { Vehicle, VehicleType, VehicleStatus } from '@/types';
 
 export default function VehiclesPage() {
-  const { vehicles } = useApp();
+  const { vehicles, fetchVehicles, loading, error } = useVehicles();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<VehicleType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<VehicleStatus | 'all'>('all');
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
-  const filtered = vehicles.filter((v) => {
-    if (typeFilter !== 'all' && v.type !== typeFilter) return false;
-    if (statusFilter !== 'all' && v.status !== statusFilter) return false;
-    if (search) {
-      const s = search.toLowerCase();
-      return (
-        v.plateNumber.toLowerCase().includes(s) ||
-        v.driver.toLowerCase().includes(s) ||
-        v.id.toLowerCase().includes(s) ||
-        v.operator.toLowerCase().includes(s)
-      );
-    }
-    return true;
-  });
+  const filtered = useMemo(() => {
+    return vehicles.filter((v) => {
+      if (typeFilter !== 'all' && v.type !== typeFilter) return false;
+      if (statusFilter !== 'all' && v.status !== statusFilter) return false;
+      if (search) {
+        const s = search.toLowerCase();
+        return (
+          v.plateNumber.toLowerCase().includes(s) ||
+          v.driver.toLowerCase().includes(s) ||
+          v.id.toLowerCase().includes(s) ||
+          v.operator.toLowerCase().includes(s)
+        );
+      }
+      return true;
+    });
+  }, [vehicles, search, typeFilter, statusFilter]);
 
   return (
     <div className="flex flex-col h-full">
@@ -43,6 +45,21 @@ export default function VehiclesPage() {
             Register Vehicle
           </button>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-900/30 border border-red-800/30 text-red-400 text-xs rounded-lg">
+            Error loading vehicles: {error}
+            <button onClick={fetchVehicles} className="ml-2 underline hover:text-red-300">
+              Retry
+            </button>
+          </div>
+        )}
+
+        {loading && (
+          <div className="mb-4 p-3 bg-amber-900/30 border border-amber-800/30 text-amber-400 text-xs rounded-lg">
+            Loading vehicles...
+          </div>
+        )}
 
         {/* Filters */}
         <div className="bg-surface-raised border border-border-default rounded-xl p-3 mb-4">
@@ -98,7 +115,13 @@ export default function VehiclesPage() {
                   </span>
                 </div>
                 <span
-                  className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${v.registrationStatus === 'active' ? 'bg-green-900/30 text-green-400 border-green-700/40' : v.registrationStatus === 'expired' ? 'bg-amber-900/30 text-amber-400 border-amber-700/40' : 'bg-red-900/30 text-red-400 border-red-700/40'}`}
+                  className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${
+                    v.registrationStatus === 'active'
+                      ? 'bg-green-900/30 text-green-400 border-green-700/40'
+                      : v.registrationStatus === 'expired'
+                        ? 'bg-amber-900/30 text-amber-400 border-amber-700/40'
+                        : 'bg-red-900/30 text-red-400 border-red-700/40'
+                  }`}
                 >
                   {v.registrationStatus}
                 </span>

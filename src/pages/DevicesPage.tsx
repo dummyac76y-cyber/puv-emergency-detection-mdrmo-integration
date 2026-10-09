@@ -1,15 +1,22 @@
 import { Cpu, Battery, Wifi, MapPin, Server } from 'lucide-react';
+import { useMemo } from 'react';
 
 import { SimulationBanner, DeviceStatusBadge } from '@/components/shared';
-import { mockDevices } from '@/data/mockData';
-import { useApp } from '@/store/AppContext';
+import { useDevices, useVehicles } from '@/store';
 
 export default function DevicesPage() {
-  const { vehicles } = useApp();
+  const { devices, fetchDevices, loading, error } = useDevices();
+  const { vehicles } = useVehicles();
 
-  const onlineCount = mockDevices.filter((d) => d.status === 'online').length;
-  const offlineCount = mockDevices.filter((d) => d.status === 'offline').length;
-  const degradedCount = mockDevices.filter((d) => d.status === 'degraded').length;
+  const onlineCount = useMemo(() => devices.filter((d) => d.status === 'online').length, [devices]);
+  const offlineCount = useMemo(
+    () => devices.filter((d) => d.status === 'offline').length,
+    [devices]
+  );
+  const degradedCount = useMemo(
+    () => devices.filter((d) => d.status === 'degraded').length,
+    [devices]
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -21,6 +28,21 @@ export default function DevicesPage() {
             ESP32 onboard device status, battery, signal, and GPS accuracy
           </p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-900/30 border border-red-800/30 text-red-400 text-xs rounded-lg">
+            Error loading devices: {error}
+            <button onClick={fetchDevices} className="ml-2 underline hover:text-red-300">
+              Retry
+            </button>
+          </div>
+        )}
+
+        {loading && (
+          <div className="mb-4 p-3 bg-amber-900/30 border border-amber-800/30 text-amber-400 text-xs rounded-lg">
+            Loading devices...
+          </div>
+        )}
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
@@ -37,7 +59,7 @@ export default function DevicesPage() {
             <p className="text-[11px] text-text-muted">Degraded</p>
           </div>
           <div className="bg-blue-900/20 border border-blue-800/30 rounded-xl p-3">
-            <p className="text-xl font-bold text-blue-400">{mockDevices.length}</p>
+            <p className="text-xl font-bold text-blue-400">{devices.length}</p>
             <p className="text-[11px] text-text-muted">Total Devices</p>
           </div>
         </div>
@@ -75,7 +97,7 @@ export default function DevicesPage() {
                 </tr>
               </thead>
               <tbody>
-                {mockDevices.map((device) => {
+                {devices.map((device) => {
                   const vehicle = vehicles.find((v) => v.id === device.vehicleId);
                   return (
                     <tr

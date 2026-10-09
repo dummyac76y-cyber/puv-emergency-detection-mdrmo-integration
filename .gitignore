@@ -1,5 +1,34 @@
+# Dependencies
 node_modules/
-.next/
+
+# Build outputs
 dist/
 build/
+.next/
 *.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Playwright
+playwright-report/
+test-results/
+
+# Supabase
+supabase/.temp/

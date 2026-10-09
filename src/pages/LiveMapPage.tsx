@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 
 import { VehicleStatusDot, IncidentTypeIcon, PriorityBadge } from '@/components/shared';
-import { useApp } from '@/store/AppContext';
+import { useVehicles, useIncidents } from '@/store';
 import { VehicleStatus, VehicleType } from '@/types';
 
 // Fix Leaflet default icon issue
@@ -61,7 +61,8 @@ function createIncidentIcon() {
 }
 
 export default function LiveMapPage({ compact = false }: { compact?: boolean }) {
-  const { vehicles, incidents, setSelectedIncident } = useApp();
+  const { vehicles, loading: vehiclesLoading } = useVehicles();
+  const { incidents, setSelectedIncident, loading: incidentsLoading } = useIncidents();
   const [statusFilter, setStatusFilter] = useState<VehicleStatus | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<VehicleType | 'all'>('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -76,9 +77,9 @@ export default function LiveMapPage({ compact = false }: { compact?: boolean }) 
     });
   }, [vehicles, statusFilter, typeFilter]);
 
-  const activeIncidents = incidents.filter(
-    (i) => i.status !== 'resolved' && i.status !== 'false-alarm'
-  );
+  const activeIncidents = useMemo(() => {
+    return incidents.filter((i) => i.status !== 'resolved' && i.status !== 'false-alarm');
+  }, [incidents]);
 
   return (
     <div className="relative w-full h-full">
@@ -173,6 +174,12 @@ export default function LiveMapPage({ compact = false }: { compact?: boolean }) 
           {filteredVehicles.length} vehicles shown
         </span>
       </div>
+
+      {(vehiclesLoading || incidentsLoading) && (
+        <div className="absolute inset-0 bg-navy-900/50 flex items-center justify-center z-[100]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
+        </div>
+      )}
 
       {/* Leaflet Map */}
       <MapContainer

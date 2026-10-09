@@ -1,5 +1,5 @@
 import { Search, Eye, CheckCircle, XCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 import {
   SimulationBanner,
@@ -8,43 +8,47 @@ import {
   IncidentTypeIcon,
   ConfirmDialog,
 } from '@/components/shared';
-import { useApp } from '@/store/AppContext';
-import { Incident, IncidentStatus } from '@/types';
+import { useIncidents } from '@/store';
+import { Incident, IncidentStatus, IncidentPriority, IncidentType } from '@/types';
 
 export default function IncidentsPage() {
-  const { incidents, updateIncidentStatus } = useApp();
+  const { incidents, fetchIncidents, updateIncidentStatus, loading, error } = useIncidents();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<IncidentStatus | 'all'>('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState<IncidentPriority | 'all'>('all');
+  const [typeFilter, setTypeFilter] = useState<IncidentType | 'all'>('all');
   const [confirmAction, setConfirmAction] = useState<{
     incidentId: string;
     status: IncidentStatus;
   } | null>(null);
   const [detailIncident, setDetailIncident] = useState<Incident | null>(null);
 
-  const filtered = incidents.filter((inc) => {
-    if (statusFilter !== 'all' && inc.status !== statusFilter) return false;
-    if (priorityFilter !== 'all' && inc.priority !== priorityFilter) return false;
-    if (typeFilter !== 'all' && inc.type !== typeFilter) return false;
-    if (search) {
-      const s = search.toLowerCase();
-      return (
-        inc.id.toLowerCase().includes(s) ||
-        inc.vehicleId.toLowerCase().includes(s) ||
-        inc.location.toLowerCase().includes(s)
-      );
-    }
-    return true;
-  });
+  const filtered = useMemo(() => {
+    return incidents.filter((inc) => {
+      if (statusFilter !== 'all' && inc.status !== statusFilter) return false;
+      if (priorityFilter !== 'all' && inc.priority !== priorityFilter) return false;
+      if (typeFilter !== 'all' && inc.type !== typeFilter) return false;
+      if (search) {
+        const s = search.toLowerCase();
+        return (
+          inc.id.toLowerCase().includes(s) ||
+          inc.vehicleId.toLowerCase().includes(s) ||
+          inc.location.toLowerCase().includes(s)
+        );
+      }
+      return true;
+    });
+  }, [incidents, search, statusFilter, priorityFilter, typeFilter]);
 
-  const sorted = [...filtered].sort((a, b) => {
-    const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-    const statusOrder = { new: 0, acknowledged: 1, responding: 2, resolved: 3, 'false-alarm': 4 };
-    if (statusOrder[a.status] !== statusOrder[b.status])
-      return statusOrder[a.status] - statusOrder[b.status];
-    return priorityOrder[a.priority] - priorityOrder[b.priority];
-  });
+  const sorted = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      const statusOrder = { new: 0, acknowledged: 1, responding: 2, resolved: 3, 'false-alarm': 4 };
+      if (statusOrder[a.status] !== statusOrder[b.status])
+        return statusOrder[a.status] - statusOrder[b.status];
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
+  }, [filtered]);
 
   return (
     <div className="flex flex-col h-full">
@@ -70,6 +74,21 @@ export default function IncidentsPage() {
             </span>
           </div>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-900/30 border border-red-800/30 text-red-400 text-xs rounded-lg">
+            Error loading incidents: {error}
+            <button onClick={fetchIncidents} className="ml-2 underline hover:text-red-300">
+              Retry
+            </button>
+          </div>
+        )}
+
+        {loading && (
+          <div className="mb-4 p-3 bg-amber-900/30 border border-amber-800/30 text-amber-400 text-xs rounded-lg">
+            Loading incidents...
+          </div>
+        )}
 
         {/* Filters */}
         <div className="bg-surface-raised border border-border-default rounded-xl p-3 mb-4">
@@ -98,7 +117,7 @@ export default function IncidentsPage() {
             </select>
             <select
               value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
+              onChange={(e) => setPriorityFilter(e.target.value as IncidentPriority | 'all')}
               className="bg-navy-800 border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary focus:outline-none focus:border-accent"
             >
               <option value="all">All Priority</option>
@@ -109,7 +128,7 @@ export default function IncidentsPage() {
             </select>
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
+              onChange={(e) => setTypeFilter(e.target.value as IncidentType | 'all')}
               className="bg-navy-800 border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary focus:outline-none focus:border-accent"
             >
               <option value="all">All Types</option>
@@ -286,8 +305,6 @@ function IncidentDetailModal({
   onClose: () => void;
   onStatusChange: (status: IncidentStatus) => void;
 }) {
-  const vehicle = useApp().vehicles.find((v) => v.id === incident.vehicleId);
-
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-surface-raised border border-border-default rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -328,7 +345,6 @@ function IncidentDetailModal({
             <div className="bg-navy-800 rounded-lg p-3">
               <p className="text-[10px] text-text-muted uppercase mb-1">Vehicle</p>
               <p className="text-sm font-mono text-text-primary">{incident.vehicleId}</p>
-              <p className="text-[11px] text-text-muted">{vehicle?.plateNumber}</p>
             </div>
             <div className="bg-navy-800 rounded-lg p-3">
               <p className="text-[10px] text-text-muted uppercase mb-1 flex items-center gap-1">
