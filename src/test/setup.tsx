@@ -1,38 +1,83 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
+// Create a proper localStorage mock that persists values
+const createLocalStorageMock = () => {
+  const store: Record<string, string> = {};
+  return {
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      Object.keys(store).forEach((k) => delete store[k]);
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: vi.fn((index: number) => Object.keys(store)[index] ?? null),
+  };
+};
+
+const localStorageMock = createLocalStorageMock();
+const sessionStorageMock = createLocalStorageMock();
+
+// Create a proper matchMedia mock
+const createMatchMediaMock = () => {
+  let matches = false;
+  const listeners: Array<(event: MediaQueryListEvent) => void> = [];
+  return {
+    get matches() {
+      return matches;
+    },
+    set matches(value: boolean) {
+      matches = value;
+    },
+    media: '',
     onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-});
+    addListener: vi.fn((listener) => listeners.push(listener)),
+    removeListener: vi.fn((listener) => {
+      const idx = listeners.indexOf(listener);
+      if (idx > -1) listeners.splice(idx, 1);
+    }),
+    addEventListener: vi.fn((event: string, listener: EventListener) => {
+      if (event === 'change') listeners.push(listener);
+    }),
+    removeEventListener: vi.fn((event: string, listener: EventListener) => {
+      if (event === 'change') {
+        const idx = listeners.indexOf(listener);
+        if (idx > -1) listeners.splice(idx, 1);
+      }
+    }),
+    dispatchEvent: vi.fn((event) => {
+      listeners.forEach((l) => l(event));
+      return true;
+    }),
+  };
+};
+
+const matchMediaMock = createMatchMediaMock();
+
+// Override window.matchMedia directly using vi.stubGlobal
+vi.stubGlobal(
+  'matchMedia',
+  vi.fn().mockImplementation((query: string) => ({
+    ...matchMediaMock,
+    media: query,
+  }))
+);
 
 Object.defineProperty(window, 'localStorage', {
   writable: true,
-  value: {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-  },
+  value: localStorageMock,
 });
 
 Object.defineProperty(window, 'sessionStorage', {
   writable: true,
-  value: {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-  },
+  value: sessionStorageMock,
 });
 
 vi.mock('react-leaflet', () => ({
