@@ -2,6 +2,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Component, ErrorInfo, ReactNode } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { captureError } from '@/utils/errorReporting';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -29,7 +30,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     this.setState({ error, errorInfo });
     this.props.onError?.(error, errorInfo);
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+
+    // Report to error tracking service
+    captureError(error, {
+      component: 'ErrorBoundary',
+      action: 'componentDidCatch',
+      metadata: {
+        componentStack: errorInfo.componentStack,
+      },
+    });
   }
 
   handleRetry = (): void => {
@@ -101,6 +110,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 }
 
 export function GlobalErrorFallback({ error }: { error: Error }): ReactNode {
+  // Report to error tracking service
+  captureError(error, {
+    component: 'GlobalErrorFallback',
+    action: 'render',
+  });
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-navy-950 p-4">
       <div className="w-full max-w-md bg-surface-raised border border-border-default rounded-2xl p-8 text-center">

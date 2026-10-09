@@ -9,3 +9,4 @@ export { usePagination } from './usePagination';
 export { useModal } from './useModal';
 export { useToast } from './useToast';
 export { useConfirmation } from './useConfirmation';
+export { useHealthCheck, useConnectionStatus } from './useHealthCheck';

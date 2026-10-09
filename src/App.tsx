@@ -1,8 +1,9 @@
-import { Suspense, lazy, type ComponentType } from 'react';
+import { Suspense, lazy, type ComponentType, useEffect } from 'react';
 
 import Layout from '@/components/Layout';
 import { LoadingSpinner } from '@/components/shared';
 import { Providers, useApp } from '@/store';
+import { initErrorReporting } from '@/utils/errorReporting';
 
 const OverviewPage = lazy(() => import('@/pages/OverviewPage'));
 const LiveMapPage = lazy(() => import('@/pages/LiveMapPage'));
@@ -39,6 +40,14 @@ function PageRouter() {
 }
 
 export default function App() {
+  // Initialize error reporting on app start
+  useEffect(() => {
+    const dsn = import.meta.env.VITE_SENTRY_DSN;
+    if (dsn) {
+      initErrorReporting(dsn);
+    }
+  }, []);
+
   return (
     <Providers>
       <Layout>
