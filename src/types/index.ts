@@ -1,6 +1,6 @@
 export type VehicleStatus = 'normal' | 'emergency' | 'sos' | 'offline';
 export type VehicleType = 'jeepney' | 'tricycle' | 'uv-express' | 'bus';
-export type IncidentType = 'crash' | 'sos' | 'medical' | 'threat' | 'fire' | 'other';
+export type IncidentType = 'crash' | 'sos' | 'medical' | 'threat' | 'other';
 export type IncidentStatus = 'new' | 'acknowledged' | 'responding' | 'resolved' | 'false-alarm';
 export type IncidentPriority = 'critical' | 'high' | 'medium' | 'low';
 export type DeviceStatus = 'online' | 'offline' | 'degraded' | 'maintenance';

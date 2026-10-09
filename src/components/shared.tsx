@@ -1,5 +1,5 @@
 import { IncidentPriority, IncidentStatus, IncidentType, VehicleStatus, DeviceStatus } from '../types';
-import { AlertTriangle, Radio, Heart, Flame, ShieldAlert, HelpCircle, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
+import { AlertTriangle, Radio, Heart, ShieldAlert, HelpCircle, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
 
 export function PriorityBadge({ priority }: { priority: IncidentPriority }) {
   const styles = {
@@ -37,7 +37,6 @@ export function IncidentTypeIcon({ type, className = 'w-4 h-4' }: { type: Incide
     crash: AlertTriangle,
     sos: Radio,
     medical: Heart,
-    fire: Flame,
     threat: ShieldAlert,
     other: HelpCircle,
   };
@@ -125,7 +124,7 @@ export function SimulationBanner() {
     <div className="bg-amber-900/20 border-b border-amber-800/30 px-4 py-1.5 flex items-center justify-center gap-2">
       <span className="w-2 h-2 rounded-full bg-amber-400 animate-blink" />
       <span className="text-[11px] font-medium text-amber-300 uppercase tracking-wider">
-        Simulation Mode — Data shown is simulated for demonstration purposes
+        Simulation Mode — Vehicle accident & driver threat monitoring (demo data)
       </span>
     </div>
   );

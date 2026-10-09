@@ -165,19 +165,7 @@ export const mockIncidents: Incident[] = [
       { timestamp: '2026-01-15T05:15:00Z', action: 'Marked false alarm', actor: 'Operator Reyes', details: 'Driver confirmed accidental activation.' },
     ],
   },
-  {
-    id: 'INC-2026-006', vehicleId: 'VH-009', vehicleType: 'bus',
-    type: 'fire', priority: 'high', status: 'new',
-    timestamp: '2026-01-15T08:35:00Z',
-    location: 'Provincial Highway, Km 8',
-    coordinates: { lat: CENTER.lat - 0.003, lng: CENTER.lng + 0.003 },
-    notes: 'Smoke detected from engine compartment. All passengers evacuated.',
-    alertDeliveryMs: 600,
-    timeline: [
-      { timestamp: '2026-01-15T08:35:00Z', action: 'Fire detected', actor: 'ESP32-009 (Automatic)', details: 'Temperature and smoke sensor triggered.' },
-      { timestamp: '2026-01-15T08:35:01Z', action: 'Alert transmitted', actor: 'System', details: 'Priority alert sent. Delivery confirmed in 0.6s.' },
-    ],
-  },
+
 ];
 
 export const mockDevices: DeviceHealth[] = mockVehicles.map((v, i) => ({
@@ -218,7 +206,6 @@ export const incidentsByTypeData = [
   { name: 'Crash Detection', count: 12, fill: '#ef4444' },
   { name: 'Manual SOS', count: 8, fill: '#f59e0b' },
   { name: 'Medical', count: 5, fill: '#8b5cf6' },
-  { name: 'Fire', count: 2, fill: '#f97316' },
   { name: 'Threat', count: 3, fill: '#ec4899' },
   { name: 'Other', count: 7, fill: '#64748b' },
 ];

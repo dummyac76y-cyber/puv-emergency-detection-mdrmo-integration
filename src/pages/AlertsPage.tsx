@@ -29,7 +29,7 @@ export default function AlertsPage() {
       <div className="flex-1 overflow-y-auto p-4 lg:p-6">
         <div className="mb-4">
           <h1 className="text-lg font-bold text-text-primary">Alert History</h1>
-          <p className="text-xs text-text-muted mt-0.5">Complete log of all emergency alerts received by the system</p>
+          <p className="text-xs text-text-muted mt-0.5">Complete log of all vehicle accident and driver threat alerts received by the system</p>
         </div>
 
         {/* Filters */}

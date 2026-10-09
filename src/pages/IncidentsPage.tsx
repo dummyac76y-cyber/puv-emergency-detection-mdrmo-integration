@@ -40,8 +40,8 @@ export default function IncidentsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-lg font-bold text-text-primary">Emergency Incidents</h1>
-            <p className="text-xs text-text-muted mt-0.5">Manage and track all reported emergency incidents</p>
+            <h1 className="text-lg font-bold text-text-primary">Vehicle Accidents & Driver Threats</h1>
+            <p className="text-xs text-text-muted mt-0.5">Manage and track vehicle collisions, SOS activations, medical emergencies, and threats against drivers</p>
           </div>
           <div className="flex items-center gap-2 text-xs text-text-muted">
             <span className="bg-red-900/30 text-red-400 px-2 py-1 rounded border border-red-800/30">
@@ -86,7 +86,6 @@ export default function IncidentsPage() {
               <option value="crash">Crash Detection</option>
               <option value="sos">Manual SOS</option>
               <option value="medical">Medical</option>
-              <option value="fire">Fire</option>
               <option value="threat">Threat</option>
               <option value="other">Other</option>
             </select>

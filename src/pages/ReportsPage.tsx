@@ -14,7 +14,7 @@ export default function ReportsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-text-primary">Reports & Analytics</h1>
-            <p className="text-xs text-text-muted mt-0.5">Incident trends, response metrics, and system performance data</p>
+            <p className="text-xs text-text-muted mt-0.5">Vehicle accident trends, driver threat incidents, response metrics, and system performance data</p>
           </div>
           <div className="flex items-center gap-2">
             <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className="bg-navy-800 border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary focus:outline-none focus:border-accent">
