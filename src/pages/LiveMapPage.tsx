@@ -1,13 +1,14 @@
-import { useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useApp } from '../store/AppContext';
-import { VehicleStatusDot, IncidentTypeIcon, PriorityBadge } from '../components/shared';
-import { Filter, Layers, MapPin, Info } from 'lucide-react';
-import { VehicleStatus, VehicleType, IncidentType } from '../types';
+import { Filter, Layers, MapPin } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+
+import { VehicleStatusDot, IncidentTypeIcon, PriorityBadge } from '@/components/shared';
+import { useApp } from '@/store/AppContext';
+import { VehicleStatus, VehicleType } from '@/types';
 
 // Fix Leaflet default icon issue
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as { _getIconUrl?: string })._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -59,12 +60,6 @@ function createIncidentIcon() {
   });
 }
 
-function MapRecenter({ center }: { center: [number, number] }) {
-  const map = useMap();
-  map.setView(center, map.getZoom());
-  return null;
-}
-
 export default function LiveMapPage({ compact = false }: { compact?: boolean }) {
   const { vehicles, incidents, setSelectedIncident } = useApp();
   const [statusFilter, setStatusFilter] = useState<VehicleStatus | 'all'>('all');
@@ -74,14 +69,16 @@ export default function LiveMapPage({ compact = false }: { compact?: boolean }) 
   const CENTER: [number, number] = [14.5995, 120.9842];
 
   const filteredVehicles = useMemo(() => {
-    return vehicles.filter(v => {
+    return vehicles.filter((v) => {
       if (statusFilter !== 'all' && v.status !== statusFilter) return false;
       if (typeFilter !== 'all' && v.type !== typeFilter) return false;
       return true;
     });
   }, [vehicles, statusFilter, typeFilter]);
 
-  const activeIncidents = incidents.filter(i => i.status !== 'resolved' && i.status !== 'false-alarm');
+  const activeIncidents = incidents.filter(
+    (i) => i.status !== 'resolved' && i.status !== 'false-alarm'
+  );
 
   return (
     <div className="relative w-full h-full">
@@ -107,10 +104,17 @@ export default function LiveMapPage({ compact = false }: { compact?: boolean }) 
           </h3>
           <div className="space-y-2">
             <div>
-              <label className="text-[11px] text-text-muted mb-1 block">Vehicle Status</label>
+              <label
+                htmlFor="status-filter"
+                id="status-filter-label"
+                className="text-[11px] text-text-muted mb-1 block"
+              >
+                Vehicle Status
+              </label>
               <select
+                id="status-filter"
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
+                onChange={(e) => setStatusFilter(e.target.value as VehicleStatus | 'all')}
                 className="w-full bg-navy-800 border border-border-subtle rounded-lg px-2 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent"
               >
                 <option value="all">All Statuses</option>
@@ -121,10 +125,17 @@ export default function LiveMapPage({ compact = false }: { compact?: boolean }) 
               </select>
             </div>
             <div>
-              <label className="text-[11px] text-text-muted mb-1 block">Vehicle Type</label>
+              <label
+                htmlFor="type-filter"
+                id="type-filter-label"
+                className="text-[11px] text-text-muted mb-1 block"
+              >
+                Vehicle Type
+              </label>
               <select
+                id="type-filter"
                 value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as any)}
+                onChange={(e) => setTypeFilter(e.target.value as VehicleType | 'all')}
                 className="w-full bg-navy-800 border border-border-subtle rounded-lg px-2 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent"
               >
                 <option value="all">All Types</option>
@@ -139,16 +150,28 @@ export default function LiveMapPage({ compact = false }: { compact?: boolean }) 
       )}
 
       {/* Legend */}
-      <div className={`absolute bottom-3 left-3 z-[1000] bg-surface-raised/95 border border-border-default rounded-lg p-2 shadow-lg ${compact ? 'hidden lg:flex' : 'flex'} items-center gap-3`}>
-        <span className="flex items-center gap-1 text-[10px] text-text-muted"><span className="w-2.5 h-2.5 rounded-full bg-green-500" /> Normal</span>
-        <span className="flex items-center gap-1 text-[10px] text-text-muted"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Emergency</span>
-        <span className="flex items-center gap-1 text-[10px] text-text-muted"><span className="w-2.5 h-2.5 rounded-full bg-gray-500" /> Offline</span>
-        <span className="flex items-center gap-1 text-[10px] text-text-muted"><MapPin className="w-2.5 h-2.5 text-red-400" /> Incident</span>
+      <div
+        className={`absolute bottom-3 left-3 z-[1000] bg-surface-raised/95 border border-border-default rounded-lg p-2 shadow-lg ${compact ? 'hidden lg:flex' : 'flex'} items-center gap-3`}
+      >
+        <span className="flex items-center gap-1 text-[10px] text-text-muted">
+          <span className="w-2.5 h-2.5 rounded-full bg-green-500" aria-hidden="true" /> Normal
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-text-muted">
+          <span className="w-2.5 h-2.5 rounded-full bg-red-500" aria-hidden="true" /> Emergency
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-text-muted">
+          <span className="w-2.5 h-2.5 rounded-full bg-gray-500" aria-hidden="true" /> Offline
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-text-muted">
+          <MapPin className="w-2.5 h-2.5 text-red-400" aria-hidden="true" /> Incident
+        </span>
       </div>
 
       {/* Vehicle count */}
       <div className="absolute top-3 right-3 z-[1000] bg-surface-raised/95 border border-border-default rounded-lg px-2.5 py-1.5 shadow-lg">
-        <span className="text-[11px] text-text-muted">{filteredVehicles.length} vehicles shown</span>
+        <span className="text-[11px] text-text-muted">
+          {filteredVehicles.length} vehicles shown
+        </span>
       </div>
 
       {/* Leaflet Map */}
@@ -178,13 +201,31 @@ export default function LiveMapPage({ compact = false }: { compact?: boolean }) 
                   <span className="font-mono font-bold text-sm">{vehicle.plateNumber}</span>
                 </div>
                 <div className="space-y-1 text-xs">
-                  <p><span className="text-gray-400">Type:</span> {vehicle.type}</p>
-                  <p><span className="text-gray-400">Driver:</span> {vehicle.driver}</p>
-                  <p><span className="text-gray-400">Speed:</span> {vehicle.speed} km/h</p>
-                  <p><span className="text-gray-400">Passengers:</span> {vehicle.passengers}</p>
-                  <p><span className="text-gray-400">GPS:</span> {vehicle.position.lat.toFixed(5)}, {vehicle.position.lng.toFixed(5)}</p>
-                  <p><span className="text-gray-400">Last Update:</span> {new Date(vehicle.lastCommunication).toLocaleTimeString('en-US', { hour12: false })}</p>
-                  <p><span className="text-gray-400">Device:</span> {vehicle.deviceId}</p>
+                  <p>
+                    <span className="text-gray-400">Type:</span> {vehicle.type}
+                  </p>
+                  <p>
+                    <span className="text-gray-400">Driver:</span> {vehicle.driver}
+                  </p>
+                  <p>
+                    <span className="text-gray-400">Speed:</span> {vehicle.speed} km/h
+                  </p>
+                  <p>
+                    <span className="text-gray-400">Passengers:</span> {vehicle.passengers}
+                  </p>
+                  <p>
+                    <span className="text-gray-400">GPS:</span> {vehicle.position.lat.toFixed(5)},{' '}
+                    {vehicle.position.lng.toFixed(5)}
+                  </p>
+                  <p>
+                    <span className="text-gray-400">Last Update:</span>{' '}
+                    {new Date(vehicle.lastCommunication).toLocaleTimeString('en-US', {
+                      hour12: false,
+                    })}
+                  </p>
+                  <p>
+                    <span className="text-gray-400">Device:</span> {vehicle.deviceId}
+                  </p>
                 </div>
               </div>
             </Popup>
@@ -208,9 +249,16 @@ export default function LiveMapPage({ compact = false }: { compact?: boolean }) 
                 </div>
                 <p className="text-xs text-gray-300 mb-2">{inc.notes}</p>
                 <div className="space-y-1 text-xs">
-                  <p><span className="text-gray-400">Location:</span> {inc.location}</p>
-                  <p><span className="text-gray-400">Time:</span> {new Date(inc.timestamp).toLocaleTimeString('en-US', { hour12: false })}</p>
-                  <p><span className="text-gray-400">Vehicle:</span> {inc.vehicleId}</p>
+                  <p>
+                    <span className="text-gray-400">Location:</span> {inc.location}
+                  </p>
+                  <p>
+                    <span className="text-gray-400">Time:</span>{' '}
+                    {new Date(inc.timestamp).toLocaleTimeString('en-US', { hour12: false })}
+                  </p>
+                  <p>
+                    <span className="text-gray-400">Vehicle:</span> {inc.vehicleId}
+                  </p>
                 </div>
               </div>
             </Popup>

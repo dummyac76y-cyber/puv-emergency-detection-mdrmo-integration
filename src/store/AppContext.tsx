@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { Incident, Alert, Vehicle, IncidentStatus, SystemStats } from '../types';
-import { mockVehicles, mockIncidents, mockAlerts, mockStats } from '../data/mockData';
+import { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
+
+import { mockVehicles, mockIncidents, mockAlerts, mockStats } from '@/data/mockData';
+import { Incident, Alert, Vehicle, IncidentStatus, SystemStats } from '@/types';
 
 interface AppState {
   vehicles: Vehicle[];
@@ -39,46 +40,81 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [notification, setNotification] = useState<AppState['notification']>(null);
 
-  const toggleSidebar = useCallback(() => setSidebarCollapsed(p => !p), []);
+  const showNotificationRef = useRef<typeof showNotification>();
+  const selectedIncidentRef = useRef(selectedIncident);
 
-  const acknowledgeAlert = useCallback((alertId: string) => {
-    setAlerts(prev => prev.map(a =>
-      a.id === alertId ? { ...a, acknowledged: true, acknowledgedAt: new Date().toISOString() } : a
-    ));
-    showNotification('Alert acknowledged', 'success');
-  }, []);
+  selectedIncidentRef.current = selectedIncident;
 
-  const updateIncidentStatus = useCallback((incidentId: string, status: IncidentStatus) => {
-    setIncidents(prev => prev.map(inc => {
-      if (inc.id !== incidentId) return inc;
-      const newTimeline = [...inc.timeline, {
-        timestamp: new Date().toISOString(),
-        action: `Status changed to ${status}`,
-        actor: 'Operator Admin',
-        details: `Incident marked as ${status}.`,
-      }];
-      return { ...inc, status, timeline: newTimeline };
-    }));
-    if (selectedIncident?.id === incidentId) {
-      setSelectedIncident(prev => prev ? { ...prev, status } : null);
-    }
-    showNotification(`Incident ${incidentId} updated to ${status}`, 'success');
-  }, [selectedIncident]);
+  const toggleSidebar = useCallback(() => setSidebarCollapsed((p) => !p), []);
 
-  const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 4000);
-  }, []);
+  const showNotification = useCallback(
+    (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+      setNotification({ message, type });
+      setTimeout(() => setNotification(null), 4000);
+    },
+    []
+  );
+
+  showNotificationRef.current = showNotification;
 
   const clearNotification = useCallback(() => setNotification(null), []);
 
+  const acknowledgeAlert = useCallback((alertId: string) => {
+    setAlerts((prev) =>
+      prev.map((a) =>
+        a.id === alertId
+          ? { ...a, acknowledged: true, acknowledgedAt: new Date().toISOString() }
+          : a
+      )
+    );
+    showNotificationRef.current?.('Alert acknowledged', 'success');
+  }, []);
+
+  const updateIncidentStatus = useCallback((incidentId: string, status: IncidentStatus) => {
+    setIncidents((prev) =>
+      prev.map((inc) => {
+        if (inc.id !== incidentId) return inc;
+        const newTimeline = [
+          ...inc.timeline,
+          {
+            timestamp: new Date().toISOString(),
+            action: `Status changed to ${status}`,
+            actor: 'Operator Admin',
+            details: `Incident marked as ${status}.`,
+          },
+        ];
+        return { ...inc, status, timeline: newTimeline };
+      })
+    );
+    if (selectedIncidentRef.current?.id === incidentId) {
+      setSelectedIncident((prev) => (prev ? { ...prev, status } : null));
+    }
+    showNotificationRef.current?.(`Incident ${incidentId} updated to ${status}`, 'success');
+  }, []);
+
   return (
-    <AppContext.Provider value={{
-      vehicles, incidents, alerts, stats, currentPage, sidebarCollapsed,
-      simulationMode: true, selectedIncident, selectedVehicle, notification,
-      setCurrentPage, toggleSidebar, acknowledgeAlert, updateIncidentStatus,
-      setSelectedIncident, setSelectedVehicle, showNotification, clearNotification,
-    }}>
+    <AppContext.Provider
+      value={{
+        vehicles,
+        incidents,
+        alerts,
+        stats,
+        currentPage,
+        sidebarCollapsed,
+        simulationMode: true,
+        selectedIncident,
+        selectedVehicle,
+        notification,
+        setCurrentPage,
+        toggleSidebar,
+        acknowledgeAlert,
+        updateIncidentStatus,
+        setSelectedIncident,
+        setSelectedVehicle,
+        showNotification,
+        clearNotification,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

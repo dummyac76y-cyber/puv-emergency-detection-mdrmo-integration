@@ -1,22 +1,28 @@
+import { Search, Bus, Plus, User, Cpu, Fuel, Users } from 'lucide-react';
 import { useState } from 'react';
-import { useApp } from '../store/AppContext';
-import { SimulationBanner, VehicleStatusDot, DeviceStatusBadge } from '../components/shared';
-import { Vehicle, VehicleType } from '../types';
-import { Search, Bus, Plus, User, Phone, Cpu, Fuel, Users } from 'lucide-react';
+
+import { SimulationBanner, VehicleStatusDot } from '@/components/shared';
+import { useApp } from '@/store/AppContext';
+import { Vehicle, VehicleType, VehicleStatus } from '@/types';
 
 export default function VehiclesPage() {
   const { vehicles } = useApp();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<VehicleType | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<VehicleStatus | 'all'>('all');
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
-  const filtered = vehicles.filter(v => {
+  const filtered = vehicles.filter((v) => {
     if (typeFilter !== 'all' && v.type !== typeFilter) return false;
     if (statusFilter !== 'all' && v.status !== statusFilter) return false;
     if (search) {
       const s = search.toLowerCase();
-      return v.plateNumber.toLowerCase().includes(s) || v.driver.toLowerCase().includes(s) || v.id.toLowerCase().includes(s) || v.operator.toLowerCase().includes(s);
+      return (
+        v.plateNumber.toLowerCase().includes(s) ||
+        v.driver.toLowerCase().includes(s) ||
+        v.id.toLowerCase().includes(s) ||
+        v.operator.toLowerCase().includes(s)
+      );
     }
     return true;
   });
@@ -28,7 +34,9 @@ export default function VehiclesPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-lg font-bold text-text-primary">Vehicle Registry</h1>
-            <p className="text-xs text-text-muted mt-0.5">Registered PUVs with device assignments and operator information</p>
+            <p className="text-xs text-text-muted mt-0.5">
+              Registered PUVs with device assignments and operator information
+            </p>
           </div>
           <button className="flex items-center gap-1.5 px-3 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg transition-colors">
             <Plus className="w-3.5 h-3.5" />
@@ -41,16 +49,30 @@ export default function VehiclesPage() {
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by plate, driver, operator..." className="w-full bg-navy-800 border border-border-subtle rounded-lg pl-9 pr-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by plate, driver, operator..."
+                className="w-full bg-navy-800 border border-border-subtle rounded-lg pl-9 pr-3 py-2 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:border-accent"
+              />
             </div>
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)} className="bg-navy-800 border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary focus:outline-none focus:border-accent">
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as VehicleType | 'all')}
+              className="bg-navy-800 border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary focus:outline-none focus:border-accent"
+            >
               <option value="all">All Types</option>
               <option value="jeepney">Jeepney</option>
               <option value="tricycle">Tricycle</option>
               <option value="uv-express">UV Express</option>
               <option value="bus">Bus</option>
             </select>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-navy-800 border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary focus:outline-none focus:border-accent">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as VehicleStatus | 'all')}
+              className="bg-navy-800 border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary focus:outline-none focus:border-accent"
+            >
               <option value="all">All Status</option>
               <option value="normal">Normal</option>
               <option value="emergency">Emergency</option>
@@ -63,13 +85,21 @@ export default function VehiclesPage() {
         {/* Vehicle Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {filtered.map((v) => (
-            <button key={v.id} onClick={() => setSelectedVehicle(v)} className="text-left bg-surface-raised border border-border-default rounded-xl p-4 hover:border-accent/50 transition-all">
+            <button
+              key={v.id}
+              onClick={() => setSelectedVehicle(v)}
+              className="text-left bg-surface-raised border border-border-default rounded-xl p-4 hover:border-accent/50 transition-all"
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <VehicleStatusDot status={v.status} />
-                  <span className="font-mono text-sm font-bold text-text-primary">{v.plateNumber}</span>
+                  <span className="font-mono text-sm font-bold text-text-primary">
+                    {v.plateNumber}
+                  </span>
                 </div>
-                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${v.registrationStatus === 'active' ? 'bg-green-900/30 text-green-400 border-green-700/40' : v.registrationStatus === 'expired' ? 'bg-amber-900/30 text-amber-400 border-amber-700/40' : 'bg-red-900/30 text-red-400 border-red-700/40'}`}>
+                <span
+                  className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${v.registrationStatus === 'active' ? 'bg-green-900/30 text-green-400 border-green-700/40' : v.registrationStatus === 'expired' ? 'bg-amber-900/30 text-amber-400 border-amber-700/40' : 'bg-red-900/30 text-red-400 border-red-700/40'}`}
+                >
                   {v.registrationStatus}
                 </span>
               </div>
@@ -90,8 +120,12 @@ export default function VehiclesPage() {
                 </div>
               </div>
               <div className="flex items-center gap-4 mt-3 pt-2 border-t border-border-subtle">
-                <span className="text-[11px] text-text-muted flex items-center gap-1"><Users className="w-3 h-3" /> {v.passengers} pax</span>
-                <span className="text-[11px] text-text-muted flex items-center gap-1"><Fuel className="w-3 h-3" /> {v.fuelLevel}%</span>
+                <span className="text-[11px] text-text-muted flex items-center gap-1">
+                  <Users className="w-3 h-3" /> {v.passengers} pax
+                </span>
+                <span className="text-[11px] text-text-muted flex items-center gap-1">
+                  <Fuel className="w-3 h-3" /> {v.fuelLevel}%
+                </span>
                 <span className="text-[11px] text-text-muted">{v.speed} km/h</span>
               </div>
             </button>
@@ -107,11 +141,23 @@ export default function VehiclesPage() {
               <div className="flex items-center gap-3">
                 <VehicleStatusDot status={selectedVehicle.status} />
                 <div>
-                  <h2 className="text-base font-bold text-text-primary font-mono">{selectedVehicle.plateNumber}</h2>
-                  <p className="text-xs text-text-muted capitalize">{selectedVehicle.type} • {selectedVehicle.id}</p>
+                  <h2 className="text-base font-bold text-text-primary font-mono">
+                    {selectedVehicle.plateNumber}
+                  </h2>
+                  <p className="text-xs text-text-muted capitalize">
+                    {selectedVehicle.type} • {selectedVehicle.id}
+                  </p>
                 </div>
               </div>
-              <button onClick={() => setSelectedVehicle(null)} className="p-2 text-text-muted hover:text-text-primary rounded-lg hover:bg-navy-800">✕</button>
+              <button
+                onClick={() => setSelectedVehicle(null)}
+                className="p-2 text-text-muted hover:text-text-primary rounded-lg hover:bg-navy-800"
+                aria-label="Close"
+              >
+                <span role="img" aria-label="Close">
+                  ✕
+                </span>
+              </button>
             </div>
             <div className="p-4 space-y-3">
               <div className="grid grid-cols-2 gap-3">
@@ -120,8 +166,15 @@ export default function VehiclesPage() {
                 <InfoItem label="Device ID" value={selectedVehicle.deviceId} mono />
                 <InfoItem label="Route" value={selectedVehicle.route} />
                 <InfoItem label="Emergency Contact" value={selectedVehicle.emergencyContact} />
-                <InfoItem label="Last Communication" value={new Date(selectedVehicle.lastCommunication).toLocaleString()} />
-                <InfoItem label="GPS Coordinates" value={`${selectedVehicle.position.lat.toFixed(5)}, ${selectedVehicle.position.lng.toFixed(5)}`} mono />
+                <InfoItem
+                  label="Last Communication"
+                  value={new Date(selectedVehicle.lastCommunication).toLocaleString()}
+                />
+                <InfoItem
+                  label="GPS Coordinates"
+                  value={`${selectedVehicle.position.lat.toFixed(5)}, ${selectedVehicle.position.lng.toFixed(5)}`}
+                  mono
+                />
                 <InfoItem label="Registration" value={selectedVehicle.registrationStatus} />
               </div>
               <div className="grid grid-cols-3 gap-3 pt-2">
@@ -130,11 +183,15 @@ export default function VehiclesPage() {
                   <p className="text-[10px] text-text-muted">km/h</p>
                 </div>
                 <div className="bg-navy-800 rounded-lg p-3 text-center">
-                  <p className="text-lg font-bold text-text-primary">{selectedVehicle.passengers}</p>
+                  <p className="text-lg font-bold text-text-primary">
+                    {selectedVehicle.passengers}
+                  </p>
                   <p className="text-[10px] text-text-muted">passengers</p>
                 </div>
                 <div className="bg-navy-800 rounded-lg p-3 text-center">
-                  <p className="text-lg font-bold text-text-primary">{selectedVehicle.fuelLevel}%</p>
+                  <p className="text-lg font-bold text-text-primary">
+                    {selectedVehicle.fuelLevel}%
+                  </p>
                   <p className="text-[10px] text-text-muted">fuel level</p>
                 </div>
               </div>
@@ -146,7 +203,13 @@ export default function VehiclesPage() {
   );
 }
 
-function InfoItem({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+interface InfoItemProps {
+  label: string;
+  value: string;
+  mono?: boolean;
+}
+
+function InfoItem({ label, value, mono }: InfoItemProps) {
   return (
     <div className="bg-navy-800 rounded-lg p-2.5">
       <p className="text-[10px] text-text-muted uppercase mb-0.5">{label}</p>
