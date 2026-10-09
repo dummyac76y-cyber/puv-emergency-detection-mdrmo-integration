@@ -1,45 +1,88 @@
+export type VehicleStatus = 'normal' | 'emergency' | 'sos' | 'offline';
+export type VehicleType = 'jeepney' | 'tricycle' | 'uv-express' | 'bus';
+export type IncidentType = 'crash' | 'sos' | 'medical' | 'threat' | 'fire' | 'other';
+export type IncidentStatus = 'new' | 'acknowledged' | 'responding' | 'resolved' | 'false-alarm';
+export type IncidentPriority = 'critical' | 'high' | 'medium' | 'low';
+export type DeviceStatus = 'online' | 'offline' | 'degraded' | 'maintenance';
+
 export interface Vehicle {
   id: string;
   plateNumber: string;
-  route: string;
+  type: VehicleType;
+  deviceId: string;
   driver: string;
-  status: 'active' | 'idle' | 'maintenance' | 'emergency';
+  operator: string;
+  status: VehicleStatus;
+  registrationStatus: 'active' | 'expired' | 'suspended';
+  lastCommunication: string;
+  emergencyContact: string;
+  position: { lat: number; lng: number };
   speed: number;
-  lastUpdate: string;
   passengers: number;
   fuelLevel: number;
-  position: { x: number; y: number };
-  routeColor: string;
-}
-
-export interface Alert {
-  id: string;
-  type: 'crash' | 'sos' | 'overspeed' | 'geofence' | 'engine';
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  vehicleId: string;
-  message: string;
-  timestamp: string;
-  status: 'active' | 'acknowledged' | 'resolved';
-  location: string;
-  responseTeam?: string;
+  route: string;
 }
 
 export interface Incident {
   id: string;
-  alertId: string;
-  type: string;
-  status: 'open' | 'dispatched' | 'on-scene' | 'resolved';
-  assignedUnit?: string;
+  vehicleId: string;
+  vehicleType: VehicleType;
+  type: IncidentType;
+  priority: IncidentPriority;
+  status: IncidentStatus;
+  timestamp: string;
+  location: string;
+  coordinates: { lat: number; lng: number };
+  assignedResponder?: string;
   notes: string;
-  createdAt: string;
-  updatedAt: string;
+  timeline: TimelineEntry[];
+  alertDeliveryMs: number;
+}
+
+export interface TimelineEntry {
+  timestamp: string;
+  action: string;
+  actor: string;
+  details?: string;
+}
+
+export interface DeviceHealth {
+  vehicleId: string;
+  deviceId: string;
+  status: DeviceStatus;
+  batteryLevel: number;
+  signalStrength: number;
+  gpsAccuracy: number;
+  lastHeartbeat: string;
+  firmwareVersion: string;
+  uptime: string;
+}
+
+export interface Alert {
+  id: string;
+  incidentId: string;
+  vehicleId: string;
+  type: IncidentType;
+  priority: IncidentPriority;
+  message: string;
+  timestamp: string;
+  acknowledged: boolean;
+  acknowledgedAt?: string;
 }
 
 export interface SystemStats {
-  totalVehicles: number;
-  activeVehicles: number;
-  activeAlerts: number;
-  criticalAlerts: number;
-  avgResponseTime: string;
-  incidentsToday: number;
+  activeEmergencies: number;
+  unacknowledgedAlerts: number;
+  vehiclesMonitored: number;
+  incidentsResolvedToday: number;
+  avgAlertDeliveryMs: number;
+  devicesOffline: number;
+}
+
+export interface NavItem {
+  id: string;
+  label: string;
+  icon: string;
+  path: string;
+  badge?: number;
 }
