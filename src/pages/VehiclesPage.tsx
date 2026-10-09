@@ -1,7 +1,8 @@
-import { Search, Bus, Plus, User, Cpu, Fuel, Users } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
-import { SimulationBanner, VehicleStatusDot } from '@/components/shared';
+import { SimulationBanner } from '@/components/shared';
+import { VehicleCard } from '@/components/vehicles';
 import { useVehicles } from '@/store';
 import { Vehicle, VehicleType, VehicleStatus } from '@/types';
 
@@ -102,56 +103,7 @@ export default function VehiclesPage() {
         {/* Vehicle Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {filtered.map((v) => (
-            <button
-              key={v.id}
-              onClick={() => setSelectedVehicle(v)}
-              className="text-left bg-surface-raised border border-border-default rounded-xl p-4 hover:border-accent/50 transition-all"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <VehicleStatusDot status={v.status} />
-                  <span className="font-mono text-sm font-bold text-text-primary">
-                    {v.plateNumber}
-                  </span>
-                </div>
-                <span
-                  className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${
-                    v.registrationStatus === 'active'
-                      ? 'bg-green-900/30 text-green-400 border-green-700/40'
-                      : v.registrationStatus === 'expired'
-                        ? 'bg-amber-900/30 text-amber-400 border-amber-700/40'
-                        : 'bg-red-900/30 text-red-400 border-red-700/40'
-                  }`}
-                >
-                  {v.registrationStatus}
-                </span>
-              </div>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center gap-2 text-text-secondary">
-                  <Bus className="w-3.5 h-3.5 text-text-muted" />
-                  <span className="capitalize">{v.type}</span>
-                  <span className="text-text-muted">•</span>
-                  <span className="text-text-muted">{v.route.split('—')[0]}</span>
-                </div>
-                <div className="flex items-center gap-2 text-text-secondary">
-                  <User className="w-3.5 h-3.5 text-text-muted" />
-                  <span>{v.driver}</span>
-                </div>
-                <div className="flex items-center gap-2 text-text-secondary">
-                  <Cpu className="w-3.5 h-3.5 text-text-muted" />
-                  <span className="font-mono text-[11px]">{v.deviceId}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 mt-3 pt-2 border-t border-border-subtle">
-                <span className="text-[11px] text-text-muted flex items-center gap-1">
-                  <Users className="w-3 h-3" /> {v.passengers} pax
-                </span>
-                <span className="text-[11px] text-text-muted flex items-center gap-1">
-                  <Fuel className="w-3 h-3" /> {v.fuelLevel}%
-                </span>
-                <span className="text-[11px] text-text-muted">{v.speed} km/h</span>
-              </div>
-            </button>
+            <VehicleCard key={v.id} vehicle={v} onClick={setSelectedVehicle} />
           ))}
         </div>
       </div>
@@ -162,7 +114,16 @@ export default function VehiclesPage() {
           <div className="bg-surface-raised border border-border-default rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="p-4 border-b border-border-subtle flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <VehicleStatusDot status={selectedVehicle.status} />
+                <span
+                  className={`inline-block w-2.5 h-2.5 rounded-full ${
+                    selectedVehicle.status === 'normal'
+                      ? 'bg-green-500'
+                      : selectedVehicle.status === 'emergency' || selectedVehicle.status === 'sos'
+                        ? 'bg-red-500 animate-pulse'
+                        : 'bg-gray-500'
+                  }`}
+                  aria-label={`Status: ${selectedVehicle.status}`}
+                />
                 <div>
                   <h2 className="text-base font-bold text-text-primary font-mono">
                     {selectedVehicle.plateNumber}

@@ -1,11 +1,15 @@
-import { Search, CheckCircle } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
-import { SimulationBanner, PriorityBadge, IncidentTypeIcon } from '@/components/shared';
-import { useAlerts } from '@/store';
+import { AlertItem } from '@/components/alerts';
+import { SimulationBanner } from '@/components/shared';
+import { useAlerts, useIncidents } from '@/store';
+import { useApp } from '@/store/AppContext';
 
 export default function AlertsPage() {
   const { alerts, fetchAlerts, acknowledgeAlert, loading, error } = useAlerts();
+  const { incidents } = useIncidents();
+  const { setCurrentPage, setSelectedIncident } = useApp();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'unacknowledged' | 'acknowledged'>('all');
 
@@ -30,6 +34,14 @@ export default function AlertsPage() {
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
   }, [filtered]);
+
+  const handleViewIncident = (incidentId: string) => {
+    const incident = incidents.find((i) => i.id === incidentId);
+    if (incident) {
+      setSelectedIncident(incident);
+      setCurrentPage('incidents');
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -87,63 +99,12 @@ export default function AlertsPage() {
         {/* Alert List */}
         <div className="space-y-2">
           {sorted.map((alert) => (
-            <div
+            <AlertItem
               key={alert.id}
-              className={`bg-surface-raised border rounded-xl p-4 transition-all ${alert.acknowledged ? 'border-border-default' : 'border-amber-700/40 bg-amber-900/5'}`}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <IncidentTypeIcon
-                    type={alert.type}
-                    className={`w-4 h-4 ${alert.priority === 'critical' ? 'text-red-400' : 'text-amber-400'}`}
-                  />
-                  <span className="font-mono text-xs font-semibold text-text-primary">
-                    {alert.id}
-                  </span>
-                  <PriorityBadge priority={alert.priority} />
-                  {!alert.acknowledged && (
-                    <span className="bg-amber-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded blink">
-                      UNREAD
-                    </span>
-                  )}
-                </div>
-                <span className="text-[11px] text-text-muted font-mono">
-                  {new Date(alert.timestamp).toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false,
-                  })}
-                </span>
-              </div>
-              <p className="text-sm text-text-secondary mb-2">{alert.message}</p>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 text-xs text-text-muted">
-                  <span>
-                    Vehicle:{' '}
-                    <span className="font-mono text-text-secondary">{alert.vehicleId}</span>
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {!alert.acknowledged && (
-                    <button
-                      onClick={() => acknowledgeAlert(alert.id)}
-                      className="flex items-center gap-1 px-2.5 py-1 bg-accent/20 text-accent text-xs font-medium rounded-lg hover:bg-accent/30 transition-colors"
-                    >
-                      <CheckCircle className="w-3 h-3" />
-                      Acknowledge
-                    </button>
-                  )}
-                  {alert.acknowledged && (
-                    <span className="flex items-center gap-1 text-xs text-green-400">
-                      <CheckCircle className="w-3 h-3" />
-                      Acknowledged
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+              alert={alert}
+              onAcknowledge={acknowledgeAlert}
+              onViewIncident={handleViewIncident}
+            />
           ))}
         </div>
       </div>

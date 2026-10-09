@@ -1,7 +1,8 @@
-import { Cpu, Battery, Wifi, MapPin, Server } from 'lucide-react';
+import { Server } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { SimulationBanner, DeviceStatusBadge } from '@/components/shared';
+import { DeviceRow } from '@/components/devices';
+import { SimulationBanner } from '@/components/shared';
 import { useDevices, useVehicles } from '@/store';
 
 export default function DevicesPage() {
@@ -100,80 +101,7 @@ export default function DevicesPage() {
                 {devices.map((device) => {
                   const vehicle = vehicles.find((v) => v.id === device.vehicleId);
                   return (
-                    <tr
-                      key={device.deviceId}
-                      className="border-b border-border-subtle/50 table-row-hover"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Cpu className="w-3.5 h-3.5 text-text-muted" />
-                          <span className="font-mono text-xs text-text-primary">
-                            {device.deviceId}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div>
-                          <span className="font-mono text-xs text-text-primary">
-                            {device.vehicleId}
-                          </span>
-                          {vehicle && (
-                            <p className="text-[11px] text-text-muted">{vehicle.plateNumber}</p>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <DeviceStatusBadge status={device.status} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Battery
-                            className={`w-3.5 h-3.5 ${device.batteryLevel > 50 ? 'text-green-400' : device.batteryLevel > 20 ? 'text-amber-400' : 'text-red-400'}`}
-                          />
-                          <div className="w-16 h-1.5 bg-navy-800 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${device.batteryLevel > 50 ? 'bg-green-500' : device.batteryLevel > 20 ? 'bg-amber-500' : 'bg-red-500'}`}
-                              style={{ width: `${device.batteryLevel}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-text-secondary">
-                            {device.batteryLevel}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Wifi
-                            className={`w-3.5 h-3.5 ${device.signalStrength > 70 ? 'text-green-400' : device.signalStrength > 40 ? 'text-amber-400' : 'text-red-400'}`}
-                          />
-                          <span className="text-xs text-text-secondary">
-                            {device.signalStrength}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-text-muted" />
-                          <span className="text-xs text-text-secondary">
-                            ±{device.gpsAccuracy}m
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs text-text-muted font-mono">
-                          {new Date(device.lastHeartbeat).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                          })}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs text-text-muted font-mono">
-                          {device.firmwareVersion}
-                        </span>
-                      </td>
-                    </tr>
+                    <DeviceRow key={device.deviceId} device={device} vehicle={vehicle ?? null} />
                   );
                 })}
               </tbody>

@@ -3,11 +3,21 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { fileURLToPath } from "url";
+import bundleAnalyzer from "vite-bundle-analyzer";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    bundleAnalyzer({
+      openAnalyzer: false,
+      analyzerMode: 'static',
+      defaultSizes: 'gzip',
+      fileName: "bundle-analysis.html",
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

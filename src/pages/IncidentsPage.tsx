@@ -1,9 +1,9 @@
-import { Search, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { Search, XCircle } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
+import { IncidentRow } from '@/components/incidents';
 import {
   SimulationBanner,
-  PriorityBadge,
   StatusBadge,
   IncidentTypeIcon,
   ConfirmDialog,
@@ -49,6 +49,18 @@ export default function IncidentsPage() {
       return priorityOrder[a.priority] - priorityOrder[b.priority];
     });
   }, [filtered]);
+
+  const handleViewDetails = (incident: Incident) => {
+    setDetailIncident(incident);
+  };
+
+  const handleAcknowledge = (incidentId: string) => {
+    setConfirmAction({ incidentId, status: 'acknowledged' });
+  };
+
+  const handleMarkFalseAlarm = (incidentId: string) => {
+    setConfirmAction({ incidentId, status: 'false-alarm' });
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -175,81 +187,13 @@ export default function IncidentsPage() {
               </thead>
               <tbody>
                 {sorted.map((inc) => (
-                  <tr
+                  <IncidentRow
                     key={inc.id}
-                    className="border-b border-border-subtle/50 table-row-hover transition-colors"
-                  >
-                    <td className="px-4 py-3">
-                      <span className="font-mono text-xs font-semibold text-text-primary">
-                        {inc.id}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div>
-                        <span className="font-mono text-xs text-text-primary">{inc.vehicleId}</span>
-                        <p className="text-[11px] text-text-muted">{inc.vehicleType}</p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        <IncidentTypeIcon type={inc.type} className="w-3.5 h-3.5 text-text-muted" />
-                        <span className="text-xs text-text-secondary capitalize">{inc.type}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <PriorityBadge priority={inc.priority} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={inc.status} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-text-muted font-mono">
-                        {new Date(inc.timestamp).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: false,
-                        })}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-text-muted max-w-[150px] truncate block">
-                        {inc.location}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => setDetailIncident(inc)}
-                          className="p-1.5 text-text-muted hover:text-accent rounded transition-colors"
-                          title="View details"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                        {inc.status === 'new' && (
-                          <button
-                            onClick={() =>
-                              setConfirmAction({ incidentId: inc.id, status: 'acknowledged' })
-                            }
-                            className="p-1.5 text-text-muted hover:text-amber-400 rounded transition-colors"
-                            title="Acknowledge"
-                          >
-                            <CheckCircle className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {(inc.status === 'resolved' || inc.status === 'false-alarm') && (
-                          <button
-                            onClick={() =>
-                              setConfirmAction({ incidentId: inc.id, status: 'false-alarm' })
-                            }
-                            className="p-1.5 text-text-muted hover:text-gray-400 rounded transition-colors"
-                            title="Mark false alarm"
-                          >
-                            <XCircle className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                    incident={inc}
+                    onViewDetails={handleViewDetails}
+                    onAcknowledge={handleAcknowledge}
+                    onMarkFalseAlarm={handleMarkFalseAlarm}
+                  />
                 ))}
               </tbody>
             </table>
