@@ -2,7 +2,7 @@ import { Search, Plus } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
 import { SimulationBanner } from '@/components/shared';
-import { VehicleCard } from '@/components/vehicles';
+import { VehicleCard, VehicleRegistrationModal } from '@/components/vehicles';
 import { useVehicles } from '@/store';
 import { Vehicle, VehicleType, VehicleStatus } from '@/types';
 
@@ -12,6 +12,7 @@ export default function VehiclesPage() {
   const [typeFilter, setTypeFilter] = useState<VehicleType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<VehicleStatus | 'all'>('all');
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   const filtered = useMemo(() => {
     return vehicles.filter((v) => {
@@ -41,7 +42,10 @@ export default function VehiclesPage() {
               Registered PUVs with device assignments and operator information
             </p>
           </div>
-          <button className="flex items-center gap-1.5 px-3 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg transition-colors">
+          <button
+            onClick={() => setShowRegisterModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg transition-colors"
+          >
             <Plus className="w-3.5 h-3.5" />
             Register Vehicle
           </button>
@@ -182,6 +186,14 @@ export default function VehiclesPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Vehicle Registration Modal */}
+      {showRegisterModal && (
+        <VehicleRegistrationModal
+          onClose={() => setShowRegisterModal(false)}
+          onSuccess={() => setShowRegisterModal(false)}
+        />
       )}
     </div>
   );

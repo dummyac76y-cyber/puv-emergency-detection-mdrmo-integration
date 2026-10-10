@@ -1,4 +1,13 @@
-import { Settings as SettingsIcon, Bell, Globe, Save, ToggleLeft, ToggleRight } from 'lucide-react';
+import {
+  Settings as SettingsIcon,
+  Bell,
+  Globe,
+  Save,
+  ToggleLeft,
+  ToggleRight,
+  AlertTriangle,
+  MapPin,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import { SimulationBanner } from '@/components/shared';
@@ -42,6 +51,38 @@ function SettingRow({ id, label, description, value, onChange }: SettingRowProps
   );
 }
 
+interface SelectSettingProps {
+  id: string;
+  label: string;
+  description: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+}
+
+function SelectSetting({ id, label, description, value, options, onChange }: SelectSettingProps) {
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-sm text-text-primary">{label}</p>
+        <p className="text-xs text-text-muted">{description}</p>
+      </div>
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="bg-navy-800 border border-border-subtle rounded-lg px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent"
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
     smsAlerts: true,
@@ -53,6 +94,13 @@ export default function SettingsPage() {
     dataRetention: '90',
     apiEndpoint: 'https://api.mdrrmo-puv.gov.ph/v1',
     simulationMode: true,
+    simulationEnabled: true,
+    simulationAutoGenerate: false,
+    simulationFrequency: '30',
+    simulationTypes: ['crash', 'sos', 'medical'],
+    mapProvider: 'openstreetmap',
+    cartoApiKey: '',
+    cartoUsername: '',
   });
 
   return (
@@ -204,6 +252,149 @@ export default function SettingsPage() {
                   onChange={() => setSettings((s) => ({ ...s, simulationMode: !s.simulationMode }))}
                 />
               </div>
+            </div>
+          </section>
+
+          {/* Simulation Settings */}
+          <section className="bg-surface-raised border border-border-default rounded-xl p-4">
+            <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-4">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              Simulation Settings
+            </h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-text-primary">Enable Simulation</p>
+                  <p className="text-xs text-text-muted">
+                    Allow incident simulation on the Live Map
+                  </p>
+                </div>
+                <Toggle
+                  id="simulation-enabled"
+                  checked={settings.simulationEnabled}
+                  onChange={() =>
+                    setSettings((s) => ({ ...s, simulationEnabled: !s.simulationEnabled }))
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-text-primary">Auto-Generate Incidents</p>
+                  <p className="text-xs text-text-muted">
+                    Automatically create random incidents during simulation
+                  </p>
+                </div>
+                <Toggle
+                  id="simulation-auto-generate"
+                  checked={settings.simulationAutoGenerate}
+                  onChange={() =>
+                    setSettings((s) => ({
+                      ...s,
+                      simulationAutoGenerate: !s.simulationAutoGenerate,
+                    }))
+                  }
+                />
+              </div>
+              <SelectSetting
+                id="simulation-frequency"
+                label="Auto-Generate Frequency"
+                description="How often to generate new incidents (seconds)"
+                value={settings.simulationFrequency}
+                options={[
+                  { value: '10', label: '10 seconds' },
+                  { value: '30', label: '30 seconds' },
+                  { value: '60', label: '1 minute' },
+                  { value: '300', label: '5 minutes' },
+                ]}
+                onChange={(value) => setSettings((s) => ({ ...s, simulationFrequency: value }))}
+              />
+              <div className="bg-navy-800/50 rounded-lg p-3">
+                <p className="text-xs font-medium text-text-primary mb-2">
+                  Incident Types to Simulate
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {(['crash', 'sos', 'medical', 'threat', 'other'] as const).map((type) => (
+                    <label
+                      key={type}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border cursor-pointer transition-colors text-xs ${
+                        settings.simulationTypes.includes(type)
+                          ? 'bg-accent/10 border-accent text-accent'
+                          : 'bg-navy-800 border-border-subtle text-text-secondary hover:border-accent/50'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={settings.simulationTypes.includes(type)}
+                        onChange={(e) =>
+                          setSettings((s) => ({
+                            ...s,
+                            simulationTypes: e.target.checked
+                              ? [...s.simulationTypes, type]
+                              : s.simulationTypes.filter((t) => t !== type),
+                          }))
+                        }
+                        className="sr-only"
+                      />
+                      <span className="capitalize">{type.replace('-', ' ')}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Map Provider Settings */}
+          <section className="bg-surface-raised border border-border-default rounded-xl p-4">
+            <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-4">
+              <MapPin className="w-4 h-4 text-blue-500" />
+              Map Provider
+            </h2>
+            <div className="space-y-4">
+              <SelectSetting
+                id="map-provider"
+                label="Tile Provider"
+                description="Choose map tile source"
+                value={settings.mapProvider}
+                options={[
+                  { value: 'openstreetmap', label: 'OpenStreetMap (Free, No API Key)' },
+                  { value: 'carto', label: 'CartoDB (Requires API Key)' },
+                  { value: 'mapbox', label: 'Mapbox (Requires API Key)' },
+                ]}
+                onChange={(value) => setSettings((s) => ({ ...s, mapProvider: value }))}
+              />
+              {settings.mapProvider === 'carto' && (
+                <div className="space-y-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <p className="text-xs text-blue-400 font-medium">CartoDB Configuration</p>
+                  <div>
+                    <label htmlFor="carto-api-key" className="text-xs text-text-muted mb-1 block">
+                      Carto API Key
+                    </label>
+                    <input
+                      id="carto-api-key"
+                      type="password"
+                      value={settings.cartoApiKey}
+                      onChange={(e) => setSettings((s) => ({ ...s, cartoApiKey: e.target.value }))}
+                      className="w-full bg-navy-800 border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary font-mono focus:outline-none focus:border-accent"
+                      placeholder="Enter Carto API Key"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="carto-username" className="text-xs text-text-muted mb-1 block">
+                      Carto Username
+                    </label>
+                    <input
+                      id="carto-username"
+                      type="text"
+                      value={settings.cartoUsername}
+                      onChange={(e) =>
+                        setSettings((s) => ({ ...s, cartoUsername: e.target.value }))
+                      }
+                      className="w-full bg-navy-800 border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary font-mono focus:outline-none focus:border-accent"
+                      placeholder="your-carto-username"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 

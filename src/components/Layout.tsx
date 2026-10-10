@@ -235,8 +235,8 @@ export default function Layout({ children }: { children: ReactNode }) {
         )}
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto bg-navy-950" role="main">
-          {children}
+        <main className="flex-1 overflow-hidden bg-navy-950" role="main">
+          <div className="h-full overflow-y-auto bg-navy-950">{children}</div>
         </main>
       </div>
 
