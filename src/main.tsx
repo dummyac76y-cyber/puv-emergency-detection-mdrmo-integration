@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 
 import { ErrorBoundary, GlobalErrorFallback } from '@/components/ui';
 
-import './index.css';
 import App from './App';
 
 function handleError(error: Error): void {
