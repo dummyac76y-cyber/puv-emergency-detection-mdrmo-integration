@@ -1,4 +1,4 @@
-export type EventType = 'suspected-crash' | 'sos' | 'assistance';
+export type EventType = 'suspected-crash';
 export type ProcessingStatus = 'new' | 'acknowledged' | 'closed' | 'canceled';
 export interface GuardEvent {
   id: string;
@@ -17,8 +17,6 @@ export interface GuardEvent {
 }
 export const eventNames: Record<EventType, string> = {
   'suspected-crash': 'Suspected crash',
-  sos: 'Manual SOS',
-  assistance: 'Assistance request',
 };
 export const smsNames = {
   'not-attempted': 'Not attempted',
@@ -79,36 +77,40 @@ export function createSampleEvents(now = Date.now()): GuardEvent[] {
     {
       id: 'DEMO-002',
       deviceId: 'TRI-02',
-      type: 'assistance',
+      type: 'suspected-crash',
       occurredAt: time(8),
       position: { lat: 11.699, lng: 122.37, capturedAt: time(15) },
       location: 'Kalibo · sample location',
-      trigger: 'Assistance button held for 2 seconds',
+      trigger: 'IMU + pronounced orientation change',
       sms: 'queued',
       serverReceivedAt: time(5),
       recoveredOffline: true,
       status: 'new',
       acknowledgment: null,
       history: [
-        { at: time(8), actor: 'Sample device', action: 'Synthetic assistance request' },
+        { at: time(8), actor: 'Sample device', action: 'Synthetic suspected-crash event' },
         { at: time(5), actor: 'Sample backend', action: 'Recovered offline record' },
       ],
     },
     {
       id: 'DEMO-003',
       deviceId: 'TRI-01',
-      type: 'sos',
+      type: 'suspected-crash',
       occurredAt: time(25),
       position: null,
       location: 'Location unavailable',
-      trigger: 'Two SOS presses within 5 seconds',
+      trigger: 'IMU + 801S shock indication',
       sms: 'not-attempted',
       serverReceivedAt: time(25),
       recoveredOffline: false,
       status: 'acknowledged',
       acknowledgment: { actor: 'Demo evaluator', at: time(24) },
       history: [
-        { at: time(25), actor: 'Sample device', action: 'Synthetic SOS event received' },
+        {
+          at: time(25),
+          actor: 'Sample device',
+          action: 'Synthetic suspected-crash event received',
+        },
         { at: time(24), actor: 'Demo evaluator', action: 'Acknowledged in sample data' },
       ],
     },

@@ -1,3 +1,4 @@
+import { googleMapUrl } from '../guard/IncidentMap';
 import { describe, expect, it } from 'vitest';
 import {
   createSampleEvents,
@@ -33,5 +34,21 @@ describe('research event evidence', () => {
   it('exports synthetic labels and neutralizes spreadsheet formulas', () => {
     expect(eventCsv(createSampleEvents())).toContain('"DEMO","DEMO-001"');
     expect(csvCell(' =HYPERLINK("bad")')).toBe('"\' =HYPERLINK(""bad"")"');
+  });
+});
+
+describe('crash-only scope and Google Maps', () => {
+  it('creates only automatically detected crash examples', () => {
+    expect(createSampleEvents().every((event) => event.type === 'suspected-crash')).toBe(true);
+  });
+  it('requires both a configured key and valid incident coordinates', () => {
+    const position = { lat: 11.7, lng: 122.3, capturedAt: '2026-10-26T00:00:00Z' };
+    expect(googleMapUrl(position, undefined)).toBeNull();
+    expect(googleMapUrl(null, 'test-key')).toBeNull();
+    expect(googleMapUrl({ ...position, lat: 91 }, 'test-key')).toBeNull();
+    const url = new URL(googleMapUrl(position, 'test-key')!);
+    expect(url.origin).toBe('https://www.google.com');
+    expect(url.pathname).toBe('/maps/embed/v1/place');
+    expect(url.searchParams.get('q')).toBe('11.7,122.3');
   });
 });

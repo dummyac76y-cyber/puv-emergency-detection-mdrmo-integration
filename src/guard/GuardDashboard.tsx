@@ -104,8 +104,7 @@ export default function GuardDashboard() {
             monitoring.
           </h1>
           <p className="intro">
-            Monitor suspected crashes, manual SOS alerts, and assistance requests from registered
-            tricycle prototypes.
+            Monitor automatically detected suspected crashes from registered tricycle prototypes.
           </p>
           <div className="entry-actions">
             <button className="primary" onClick={() => setDemo(true)}>
@@ -130,11 +129,11 @@ export default function GuardDashboard() {
           </footer>
         </main>
         <aside className="entry-side">
-          <span className="eyebrow">BUILT AROUND THREE SIGNALS</span>
+          <span className="eyebrow">CRASH DETECTION WORKFLOW</span>
           {[
             ['01', 'Suspected crash', 'IMU and supporting shock indication.'],
-            ['02', 'Manual SOS', 'Two presses within five seconds.'],
-            ['03', 'Assistance', 'A separate button held for two seconds.'],
+            ['02', 'Location & delivery', 'GNSS position, SMS attempts and server receipt.'],
+            ['03', 'Incident review', 'Acknowledgment and a recorded event history.'],
           ].map(([n, title, text]) => (
             <div className="signal" key={n}>
               <span>{n}</span>
@@ -277,7 +276,7 @@ export default function GuardDashboard() {
                       .length.toString()
                       .padStart(2, '0')}
                   </strong>
-                  <small>Suspected crash, SOS or assistance</small>
+                  <small>Automatically detected suspected crashes</small>
                 </div>
                 <div>
                   <span>Recovered offline</span>
@@ -327,15 +326,8 @@ export default function GuardDashboard() {
                           key={e.id}
                         >
                           <div className="event-top">
-                            <span
-                              className={`event-type ${e.type === 'assistance' ? 'assistance' : ''}`}
-                            >
-                              {e.type === 'assistance' ? (
-                                <Radio size={15} />
-                              ) : (
-                                <AlertTriangle size={15} />
-                              )}{' '}
-                              {eventNames[e.type]}
+                            <span className="event-type">
+                              <AlertTriangle size={15} /> {eventNames[e.type]}
                             </span>
                             <ChevronRight size={16} />
                           </div>
@@ -386,15 +378,11 @@ export default function GuardDashboard() {
                         <Suspense
                           fallback={<div className="map-loading">Loading incident map…</div>}
                         >
-                          <IncidentMap
-                            events={visible}
-                            selected={selectedId}
-                            onSelect={setSelectedId}
-                          />
+                          <IncidentMap event={selected} />
                         </Suspense>
                         <div className="map-caption">
                           <MapPin size={14} />
-                          <span>Sample incident positions · not live tracking</span>
+                          <span>Google Maps · selected sample incident</span>
                         </div>
                       </div>
                       <div className="position-line">
@@ -534,14 +522,6 @@ export default function GuardDashboard() {
                     'IMU plus shock or orientation evidence initiates a local warning. Allow 10 seconds to cancel before creating an emergency event.',
                   ],
                   [
-                    'Manual SOS',
-                    'Two valid presses within 5 seconds generate a manual event without requiring a shock trigger.',
-                  ],
-                  [
-                    'Assistance request',
-                    'Hold the separate assistance button for at least 2 seconds. Keep the label distinct from a suspected crash.',
-                  ],
-                  [
                     'Connectivity recovery',
                     'Save events with unique IDs in non-volatile storage. Retry later and prevent duplicate incident records.',
                   ],
@@ -577,8 +557,12 @@ export default function GuardDashboard() {
                     claims of medical severity.
                   </p>
                 </div>
-                <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
-                  Map attribution & licensing <ArrowUpRight size={14} />
+                <a
+                  href="https://developers.google.com/maps/documentation/embed/get-api-key"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Google Maps API setup <ArrowUpRight size={14} />
                 </a>
               </section>
             </div>

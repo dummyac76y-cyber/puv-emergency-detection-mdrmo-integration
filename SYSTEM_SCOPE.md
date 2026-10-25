@@ -4,8 +4,8 @@ The active interface follows the supplied October 2026 revised proposal, pages 7
 
 ## Active interface
 - Incident queue, search, status filtering and record export.
-- Separate suspected-crash, manual SOS and assistance event labels.
-- Event map, GNSS fix timestamp and missing/stale/future-time handling.
+- Automatic suspected-crash events only, following the user’s clarified scope.
+- Google Maps Embed API for the selected event, GNSS fix timestamp and missing/stale/future-time handling.
 - Distinct SMS attempt, modem acceptance, verified delivery, server receipt and acknowledgment evidence.
 - Acknowledge then close workflow with session event history.
 - Prototype power, IMU, 801S, cellular and offline queue examples.
@@ -22,7 +22,7 @@ The previous Supabase code remains in the repository for reference and migration
 3. Add a protected device ingestion backend with schema validation, registered-device authentication, event-ID deduplication and rate limiting. Admin credentials stay server-side.
 4. Read devices, incidents and deliveryAttempts only for authorized users. Write acknowledgment plus auditLogs atomically; reject invalid state transitions on the server.
 5. Protect contact details and location records with least-privilege rules and a reviewed retention policy.
-6. Verify firmware: 10-second automatic-event cancellation, double SOS press within 5 seconds, 2-second assistance hold, durable queue and accurate modem/delivery receipts.
+6. Verify firmware: 10-second automatic-event cancellation, durable queue and accurate modem/delivery receipts.
 7. Run hardware, authentication/rules and end-to-end tests with designated recipients before any pilot. Government notifications require written permission.
 
 A GNSS fix is displayed as recent for 120 seconds relative to the current browser time. This is a documented display heuristic, not an approved research threshold or position-accuracy result. Clock uncertainty must be handled in the live ingestion implementation.
@@ -37,3 +37,8 @@ Automated dispatch, responder management, inferred injury severity, general Akla
 - The repository-wide typecheck has existing failures in legacy pages/tests. The dedicated config does not replace or hide that command.
 
 Design references: https://www.nngroup.com/articles/principles-visual-design/ and https://www.w3.org/WAI/WCAG22/Understanding/use-of-color/ . Use clear hierarchy, restrained emphasis, explicit status text, visible keyboard focus, responsive layouts and reduced-motion support.
+
+## Clarified scope and mapping
+The user explicitly removed manual SOS and driver assistance from this website, overriding those parts of the supplied proposal. Only automatic crash detection is represented.
+
+The active map uses Google Maps Embed API, not OpenStreetMap or Leaflet. Configure VITE_GOOGLE_MAPS_API_KEY with an API key enabled for Maps Embed API and restrict it to the deployed website domains and that API. The browser key is public by design; never use a server credential here. Without a key the UI shows a configuration message and coordinates, without requesting a map. No project billing or API provisioning was changed. Iframe errors from Google remain visible inside the map; cross-origin response contents cannot be verified by this app.
