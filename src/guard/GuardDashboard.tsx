@@ -24,6 +24,7 @@ import {
   type GuardEvent,
 } from './model';
 import './guard.css';
+const CellularPage = lazy(() => import('./CellularPage'));
 const CrashOverview = lazy(() => import('./CrashOverview'));
 const IncidentMap = lazy(() => import('./IncidentMap'));
 const formatTime = (value: string | null) =>
@@ -37,7 +38,7 @@ const formatTime = (value: string | null) =>
         second: '2-digit',
       })
     : 'Not recorded';
-type Tab = 'dashboard' | 'incidents' | 'devices' | 'protocol';
+type Tab = 'dashboard' | 'incidents' | 'devices' | 'cellular' | 'protocol';
 export default function GuardDashboard() {
   const [demo, setDemo] = useState(false);
   const [tab, setTab] = useState<Tab>('dashboard');
@@ -172,6 +173,7 @@ export default function GuardDashboard() {
               { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
               { id: 'incidents', name: 'Incident monitor', icon: ClipboardList },
               { id: 'devices', name: 'Prototype devices', icon: Cpu },
+              { id: 'cellular', name: 'Cellular & recipients', icon: Radio },
               { id: 'protocol', name: 'Test protocol', icon: Shield },
             ] as const
           ).map((item) => (
@@ -214,9 +216,11 @@ export default function GuardDashboard() {
                 ? 'Crash dashboard'
                 : tab === 'incidents'
                   ? 'Incident monitor'
-                  : tab === 'devices'
-                    ? 'Prototype devices'
-                    : 'Test protocol'}
+                  : tab === 'cellular'
+                    ? 'Cellular & recipients'
+                    : tab === 'devices'
+                      ? 'Prototype devices'
+                      : 'Test protocol'}
             </strong>
           </span>
           <span className="preview-label">
@@ -240,18 +244,22 @@ export default function GuardDashboard() {
                   ? 'Crash dashboard'
                   : tab === 'incidents'
                     ? 'Incident monitor'
-                    : tab === 'devices'
-                      ? 'Prototype devices'
-                      : 'Test protocol'}
+                    : tab === 'cellular'
+                      ? 'Cellular & recipients'
+                      : tab === 'devices'
+                        ? 'Prototype devices'
+                        : 'Test protocol'}
               </h1>
               <p>
                 {tab === 'dashboard'
                   ? 'Crash locations and the events that need review.'
                   : tab === 'incidents'
                     ? 'Review the signal. Check delivery. Record acknowledgment.'
-                    : tab === 'devices'
-                      ? 'Check the hardware and connectivity behind each event.'
-                      : 'The essential controls and evidence for controlled evaluation.'}
+                    : tab === 'cellular'
+                      ? 'Registered MDRRMO destinations and crash SMS content.'
+                      : tab === 'devices'
+                        ? 'Check the hardware and connectivity behind each event.'
+                        : 'The essential controls and evidence for controlled evaluation.'}
               </p>
             </div>
             {tab === 'incidents' && (
@@ -422,6 +430,10 @@ export default function GuardDashboard() {
                         <h3>Signal & delivery evidence</h3>
                         <dl>
                           <div>
+                            <dt>Registered user</dt>
+                            <dd>{selected.userId}</dd>
+                          </div>
+                          <div>
                             <dt>Trigger</dt>
                             <dd>{selected.trigger}</dd>
                           </div>
@@ -492,6 +504,11 @@ export default function GuardDashboard() {
               </div>
             </>
           )}
+          <div hidden={tab !== 'cellular'}>
+            <Suspense fallback={<p>Loading cellular settings…</p>}>
+              <CellularPage events={events} />
+            </Suspense>
+          </div>
           {tab === 'devices' && (
             <>
               <div className="device-grid">

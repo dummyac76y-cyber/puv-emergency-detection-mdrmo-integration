@@ -3,6 +3,7 @@ export type ProcessingStatus = 'new' | 'acknowledged' | 'closed' | 'canceled';
 export interface GuardEvent {
   id: string;
   deviceId: string;
+  userId: string;
   type: EventType;
   occurredAt: string;
   position: { lat: number; lng: number; capturedAt: string } | null;
@@ -62,6 +63,7 @@ export function createSampleEvents(now = Date.now()): GuardEvent[] {
     {
       id: 'DEMO-001',
       deviceId: 'TRI-01',
+      userId: 'DEMO-USER-001',
       type: 'suspected-crash',
       occurredAt: time(3),
       position: { lat: 11.7069, lng: 122.3642, capturedAt: time(3) },
@@ -77,6 +79,7 @@ export function createSampleEvents(now = Date.now()): GuardEvent[] {
     {
       id: 'DEMO-002',
       deviceId: 'TRI-02',
+      userId: 'DEMO-USER-002',
       type: 'suspected-crash',
       occurredAt: time(8),
       position: { lat: 11.699, lng: 122.37, capturedAt: time(15) },
@@ -95,6 +98,7 @@ export function createSampleEvents(now = Date.now()): GuardEvent[] {
     {
       id: 'DEMO-003',
       deviceId: 'TRI-01',
+      userId: 'DEMO-USER-001',
       type: 'suspected-crash',
       occurredAt: time(25),
       position: null,
@@ -151,6 +155,7 @@ export function eventCsv(events: GuardEvent[]): string {
       'mode',
       'eventId',
       'deviceId',
+      'userId',
       'type',
       'occurredAt',
       'status',
@@ -165,6 +170,7 @@ export function eventCsv(events: GuardEvent[]): string {
       'DEMO',
       e.id,
       e.deviceId,
+      e.userId,
       e.type,
       e.occurredAt,
       e.status,
