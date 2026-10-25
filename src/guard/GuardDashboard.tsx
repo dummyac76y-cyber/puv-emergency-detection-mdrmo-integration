@@ -5,6 +5,7 @@ import {
   Check,
   ChevronRight,
   ClipboardList,
+  LayoutDashboard,
   Cpu,
   LogOut,
   MapPin,
@@ -23,6 +24,7 @@ import {
   type GuardEvent,
 } from './model';
 import './guard.css';
+const CrashOverview = lazy(() => import('./CrashOverview'));
 const IncidentMap = lazy(() => import('./IncidentMap'));
 const formatTime = (value: string | null) =>
   value
@@ -35,10 +37,10 @@ const formatTime = (value: string | null) =>
         second: '2-digit',
       })
     : 'Not recorded';
-type Tab = 'incidents' | 'devices' | 'protocol';
+type Tab = 'dashboard' | 'incidents' | 'devices' | 'protocol';
 export default function GuardDashboard() {
   const [demo, setDemo] = useState(false);
-  const [tab, setTab] = useState<Tab>('incidents');
+  const [tab, setTab] = useState<Tab>('dashboard');
   const [events, setEvents] = useState(createSampleEvents);
   const [selectedId, setSelectedId] = useState('DEMO-001');
   const [query, setQuery] = useState('');
@@ -167,6 +169,7 @@ export default function GuardDashboard() {
         <nav aria-label="Main navigation">
           {(
             [
+              { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
               { id: 'incidents', name: 'Incident monitor', icon: ClipboardList },
               { id: 'devices', name: 'Prototype devices', icon: Cpu },
               { id: 'protocol', name: 'Test protocol', icon: Shield },
@@ -207,11 +210,13 @@ export default function GuardDashboard() {
           <span>
             Research workspace <ChevronRight size={14} />
             <strong>
-              {tab === 'incidents'
-                ? 'Incident monitor'
-                : tab === 'devices'
-                  ? 'Prototype devices'
-                  : 'Test protocol'}
+              {tab === 'dashboard'
+                ? 'Crash dashboard'
+                : tab === 'incidents'
+                  ? 'Incident monitor'
+                  : tab === 'devices'
+                    ? 'Prototype devices'
+                    : 'Test protocol'}
             </strong>
           </span>
           <span className="preview-label">
@@ -231,18 +236,22 @@ export default function GuardDashboard() {
             <div>
               <p className="eyebrow">KALIBO, AKLAN / RESEARCH PROTOTYPE</p>
               <h1>
-                {tab === 'incidents'
-                  ? 'Incident monitor'
-                  : tab === 'devices'
-                    ? 'Prototype devices'
-                    : 'Test protocol'}
+                {tab === 'dashboard'
+                  ? 'Crash dashboard'
+                  : tab === 'incidents'
+                    ? 'Incident monitor'
+                    : tab === 'devices'
+                      ? 'Prototype devices'
+                      : 'Test protocol'}
               </h1>
               <p>
-                {tab === 'incidents'
-                  ? 'Review the signal. Check delivery. Record acknowledgment.'
-                  : tab === 'devices'
-                    ? 'Check the hardware and connectivity behind each event.'
-                    : 'The essential controls and evidence for controlled evaluation.'}
+                {tab === 'dashboard'
+                  ? 'Crash locations and the events that need review.'
+                  : tab === 'incidents'
+                    ? 'Review the signal. Check delivery. Record acknowledgment.'
+                    : tab === 'devices'
+                      ? 'Check the hardware and connectivity behind each event.'
+                      : 'The essential controls and evidence for controlled evaluation.'}
               </p>
             </div>
             {tab === 'incidents' && (
@@ -255,6 +264,17 @@ export default function GuardDashboard() {
           <p role="status" aria-live="polite" className="notice">
             {notice}
           </p>
+          {tab === 'dashboard' && (
+            <Suspense fallback={<p>Loading dashboard…</p>}>
+              <CrashOverview
+                events={events}
+                onReview={(id) => {
+                  setSelectedId(id);
+                  setTab('incidents');
+                }}
+              />
+            </Suspense>
+          )}
           {tab === 'incidents' && (
             <>
               <section className="summary" aria-label="Demo event summary">
